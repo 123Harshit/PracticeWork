@@ -13,7 +13,7 @@ class PaymentScreen extends Component {
     render() {
         payment_step = async() =>{
             await axios({
-                url:'http://ce1196a0fae1.ngrok.io/razorpay',
+                url:'http://4a4477f0e449.ngrok.io/razorpay',
                 method:'post',
             }).then(response=>{
                 this.setState({
@@ -25,7 +25,7 @@ class PaymentScreen extends Component {
             console.log(this.state.id)
         }
         pressed = () =>{
-            axios.get(`http://ce1196a0fae1.ngrok.io/`).then(function(response){        //will have to use ngrok
+            axios.get(`http://4a4477f0e449.ngrok.io/`).then(function(response){        //will have to use ngrok
                 console.log(response.data)
             }).catch(function(err){
                 console.log(err.response);

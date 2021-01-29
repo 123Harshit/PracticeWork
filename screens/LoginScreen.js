@@ -1,93 +1,70 @@
-import React, { Component } from 'react'
-import { View, Text, StyleSheet , Button } from 'react-native'
-import * as Google from 'expo-google-app-auth'
-import firebase from 'firebase'
-class LoginScreen extends Component{
+import React, {useEffect, useState} from 'react'
+import SocialButton from '../components/SocialButton';
+import { GoogleSignin } from '@react-native-community/google-signin';
+import auth from '@react-native-firebase/auth';
+import { View } from 'react-native'
 
-  isUserEqual = (googleUser, firebaseUser) =>{
-    if (firebaseUser) {
-      var providerData = firebaseUser.providerData;
-      for (var i = 0; i < providerData.length; i++) {
-        if (providerData[i].providerId === firebase.auth.GoogleAuthProvider.PROVIDER_ID &&
-            providerData[i].uid === googleUser.getBasicProfile().getId()) {
-          // We don't need to reauth the Firebase connection.
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-   onSignIn = googleUser => {
-    console.log('Google Auth Response', googleUser);
-    // We need to register an Observer on Firebase Auth to make sure auth is initialized.
-    var unsubscribe = firebase.auth().onAuthStateChanged((firebaseUser) => {
-      unsubscribe();
-      // Check if we are already signed-in Firebase with the correct user.
-      if (!this.isUserEqual(googleUser, firebaseUser)) {
-        // Build Firebase credential with the Google ID token.
-        var credential = firebase.auth.GoogleAuthProvider.credential(
-            googleUser.idToken,
-            googleUser.accessToken
-          );
-  
-        // Sign in with credential from the Google user.
-        firebase.auth().signInWithCredential(credential).then(function(){
-          console.log("User Signed In")
-        }).catch((error) => {
-          // Handle Errors here.
-          var errorCode = error.code;
-          var errorMessage = error.message;
-          // The email of the user's account used.
-          var email = error.email;
-          // The firebase.auth.AuthCredential type that was used.
-          var credential = error.credential;
-          // ...
-        });
-      } else {
-        console.log('User already signed-in Firebase.');
-      }
+const LoginScreen = ({navigation}) => {
+  const [user, setUser] = useState({});
+  useEffect(() => {
+    // initialize the Google SDK
+    GoogleSignin.configure({
+      webClientId: '88304174696-hhdl2dlar54ub1gscbogtth8iuu3rn1c.apps.googleusercontent.com',
     });
+  }, []);
+  //...
+  
+  googleLogin = async () => {
+    // Get the users ID token
+    try{
+      const { idToken } = await GoogleSignin.signIn();
+    
+    GoogleSignin.getTokens().then(res=>{
+      console.log(res.accessToken)
+    });
+    // Create a Google credential with the token
+    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+    console.log(googleCredential);
+    // Sign-in the user with the credential
+    const value = auth().signInWithCredential(googleCredential);
+    setUser(value);
+    console.log(value);
+    navigation.navigate('PaymentScreen');
+    }catch{err=>{
+      console.log(err);
+    }}
   }
-    signInWithGoogleAsync= async () => {
-        try {
-          const result = await Google.logInAsync({
-            behavior:'web',
-           androidClientId: "632042964864-occ9ggmpp5hbjhsrpmopoob6vor722td.apps.googleusercontent.com",
-            scopes: ['profile', 'email'],
-          });
-          if (result.type === 'success') {
-            this.onSignIn(result)
-            return result.accessToken;
-          } else {
-            return { cancelled: true };
-          }
-        } catch (e) {
-          return { error: true };
-        }
-      }
-    render(){
-        return(
-            <View style={styles.container}>
-                <Button 
-                    title="Sign in With Google"
-                    onPress={()=>this.signInWithGoogleAsync()}
-                />
-            </View>
-        )
-    }
-}
 
+  googleSignOut = async () =>{
+    try{
+      await GoogleSignin.revokeAccess();
+      await GoogleSignin.signOut();
+    }catch{error=>{
+      console.log(error);
+    }}
+  }
+
+  return (
+    <View>
+      
+      
+      <SocialButton 
+        buttonTitle="Sign In with Google"
+        btnType="google"
+        color="#de4d41"
+        backgroundColor="#f5e7ea"
+        onPress={googleLogin}
+      />
+      <SocialButton 
+        buttonTitle="Sign Out"
+        btnType="google"
+        color="#de4d41"
+        backgroundColor="#f5e7ea"
+        onPress={googleLogin}
+      />
+    </View>
+  );
+};
+ 
 export default LoginScreen;
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#fff',
-        alignItems: 'center',
-        justifyContent: 'center',
-      },
-})
-
-
-//632042964864-occ9ggmpp5hbjhsrpmopoob6vor722td.apps.googleusercontent.com

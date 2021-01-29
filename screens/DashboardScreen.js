@@ -9,7 +9,6 @@ import {
   TextInput
 } from "react-native";
 import PhoneInput from "react-native-phone-number-input";
-import * as Google from 'expo-google-app-auth'
 import { Content, Item, Input } from 'native-base';
 import { Grid, Col } from 'react-native-easy-grid';
 
